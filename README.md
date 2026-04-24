@@ -66,16 +66,3 @@ python -m http.server 8000
 ```text
 http://localhost:8000/
 ```
-
-## 部署到 GitHub Pages
-
-1. 新建仓库
-2. 将本目录全部文件上传到仓库根目录
-3. 在 GitHub 仓库设置中开启 Pages
-4. 选择 `Deploy from a branch`
-5. 选择 `main` 分支与 `/root`
-6. 等待站点生成
-
-## 备注
-
-当前版本不依赖前端框架，便于直接复制、修改和部署。后续如需升级为 React / Vite、Next.js 或双语版本，可在现有结构上继续扩展。
