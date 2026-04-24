@@ -1,0 +1,1396 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>王硕 | 面向无人平台自主感知的研究型工程师</title>
+  <meta name="description" content="王硕的研究型网页简历：聚焦先验信息引导下的无人平台自主感知、地图级先验构建、地形结构化建模、动态感知、变化检测与地图增量更新。" />
+  <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+  <style>
+    :root{
+      --bg:#07111f;
+      --bg-soft:#0b1630;
+      --panel:rgba(11,22,48,.72);
+      --panel-strong:#0c1935;
+      --border:rgba(125,211,252,.14);
+      --text:#e6f0ff;
+      --muted:#9eb0d0;
+      --accent:#7dd3fc;
+      --accent-2:#a78bfa;
+      --accent-3:#34d399;
+      --danger:#fb7185;
+      --warning:#fbbf24;
+      --shadow:0 20px 60px rgba(0,0,0,.35);
+      --radius:22px;
+      --content:1200px;
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+        "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(circle at 20% 10%, rgba(125,211,252,.13), transparent 22%),
+        radial-gradient(circle at 85% 18%, rgba(167,139,250,.15), transparent 25%),
+        linear-gradient(180deg, #07111f 0%, #08101c 45%, #060b14 100%);
+      min-height:100vh;
+      overflow-x:hidden;
+    }
+    body::before{
+      content:"";
+      position:fixed;
+      inset:0;
+      background-image:
+        linear-gradient(rgba(255,255,255,.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.03) 1px, transparent 1px);
+      background-size: 42px 42px;
+      mask-image: linear-gradient(180deg, rgba(0,0,0,.52), transparent 92%);
+      pointer-events:none;
+      z-index:-2;
+    }
+    .blob{
+      position:fixed;
+      border-radius:999px;
+      filter: blur(70px);
+      opacity:.16;
+      z-index:-1;
+      pointer-events:none;
+      animation: float 16s ease-in-out infinite;
+    }
+    .blob.one{width:240px;height:240px; left:-30px; top:12vh; background:#38bdf8;}
+    .blob.two{width:260px;height:260px; right:-60px; top:34vh; background:#8b5cf6; animation-delay:-6s;}
+    .blob.three{width:200px;height:200px; left:18vw; bottom:6vh; background:#10b981; animation-delay:-10s;}
+    @keyframes float{
+      0%,100%{transform:translateY(0) translateX(0)}
+      50%{transform:translateY(-16px) translateX(10px)}
+    }
+
+    .topbar{
+      position:sticky;
+      top:0;
+      z-index:10;
+      backdrop-filter: blur(16px);
+      background:rgba(7,17,31,.7);
+      border-bottom:1px solid rgba(255,255,255,.05);
+    }
+    .topbar-inner{
+      max-width:var(--content);
+      margin:0 auto;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:14px 20px;
+      gap:16px;
+    }
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      min-width:0;
+    }
+    .brand-badge{
+      width:42px;height:42px;border-radius:14px;
+      display:grid;place-items:center;
+      background:linear-gradient(135deg, rgba(125,211,252,.18), rgba(167,139,250,.20));
+      border:1px solid rgba(255,255,255,.08);
+      font-weight:800;
+      color:#fff;
+      box-shadow: var(--shadow);
+    }
+    .brand-text strong{display:block;font-size:15px}
+    .brand-text span{display:block;font-size:12px;color:var(--muted)}
+    .nav{
+      display:flex; flex-wrap:wrap; justify-content:flex-end; gap:10px;
+    }
+    .nav a{
+      text-decoration:none;
+      color:var(--muted);
+      padding:10px 14px;
+      border-radius:999px;
+      font-size:14px;
+      transition:.25s ease;
+    }
+    .nav a:hover{color:var(--text); background:rgba(255,255,255,.05)}
+
+    main{max-width:var(--content); margin:0 auto; padding:28px 20px 80px}
+    section{margin-top:26px}
+    .hero{
+      display:grid;
+      grid-template-columns: 1.3fr .9fr;
+      gap:20px;
+      align-items:stretch;
+    }
+    .panel{
+      background:var(--panel);
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      backdrop-filter: blur(16px);
+    }
+    .hero-main{
+      padding:34px;
+      position:relative;
+      overflow:hidden;
+    }
+    .hero-main::after{
+      content:"";
+      position:absolute;
+      inset:auto -40px -60px auto;
+      width:280px; height:280px;
+      background:radial-gradient(circle, rgba(125,211,252,.16), transparent 65%);
+      pointer-events:none;
+    }
+    .eyebrow{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      font-size:13px;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      color:var(--accent);
+      padding:8px 12px;
+      border-radius:999px;
+      background:rgba(125,211,252,.08);
+      border:1px solid rgba(125,211,252,.16);
+    }
+    h1{
+      margin:16px 0 10px;
+      font-size: clamp(34px, 7vw, 58px);
+      line-height:1.04;
+      letter-spacing:-.03em;
+    }
+    .hero-sub{
+      font-size: clamp(18px, 2.3vw, 24px);
+      color:#dbe7ff;
+      margin:0 0 18px;
+      line-height:1.5;
+      max-width: 20em;
+    }
+    .hero-desc{
+      color:var(--muted);
+      line-height:1.8;
+      font-size:15px;
+      max-width: 58em;
+    }
+    .chip-row{
+      display:flex; flex-wrap:wrap; gap:10px; margin-top:18px;
+    }
+    .chip{
+      border:1px solid rgba(255,255,255,.08);
+      background:rgba(255,255,255,.04);
+      color:#dce7fb;
+      padding:10px 12px;
+      border-radius:999px;
+      font-size:13px;
+    }
+    .hero-actions{
+      display:flex; flex-wrap:wrap; gap:12px; margin-top:22px;
+    }
+    .btn{
+      appearance:none; border:none; cursor:pointer;
+      padding:13px 18px; border-radius:14px; font-weight:700;
+      font-size:14px; transition:.25s ease; text-decoration:none;
+      display:inline-flex; align-items:center; gap:10px;
+    }
+    .btn-primary{
+      background:linear-gradient(135deg, var(--accent), #60a5fa);
+      color:#04111e;
+    }
+    .btn-secondary{
+      background:rgba(255,255,255,.04);
+      color:var(--text);
+      border:1px solid rgba(255,255,255,.08);
+    }
+    .btn:hover{transform:translateY(-1px)}
+
+    .hero-side{
+      display:grid;
+      gap:20px;
+    }
+    .stats{
+      padding:24px;
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:14px;
+    }
+    .stat{
+      padding:18px;
+      border-radius:18px;
+      background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+      border:1px solid rgba(255,255,255,.08);
+    }
+    .stat .value{
+      font-size:28px;
+      font-weight:800;
+      margin-bottom:6px;
+      letter-spacing:-.02em;
+    }
+    .stat .label{
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.5;
+    }
+    .mini-card{
+      padding:22px 24px;
+    }
+    .mini-card h3{
+      margin:0 0 10px;
+      font-size:18px;
+    }
+    .mini-card p{
+      margin:0;
+      color:var(--muted);
+      line-height:1.75;
+      font-size:14px;
+    }
+    .mini-list{
+      display:grid;
+      gap:8px;
+      margin:0;
+      padding:0;
+      list-style:none;
+      color:#dce7fb;
+      font-size:14px;
+      line-height:1.7;
+    }
+    .mini-list a,
+    .contact-card a,
+    .inline-link{
+      color:#dce7fb;
+      text-decoration:none;
+      border-bottom:1px solid rgba(125,211,252,.28);
+    }
+    .mini-list a:hover,
+    .contact-card a:hover,
+    .inline-link:hover{color:var(--accent)}
+
+    .section-title{
+      display:flex;
+      align-items:end;
+      justify-content:space-between;
+      gap:16px;
+      margin-bottom:16px;
+    }
+    .section-title h2{
+      margin:0;
+      font-size: clamp(26px, 4vw, 38px);
+      letter-spacing:-.02em;
+    }
+    .section-title p{
+      margin:0;
+      color:var(--muted);
+      line-height:1.7;
+      max-width:54ch;
+      font-size:15px;
+    }
+
+    .overview{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:20px;
+    }
+    .about-card{padding:28px}
+    .about-grid{
+      display:grid; grid-template-columns:repeat(2, 1fr); gap:14px; margin-top:18px;
+    }
+    .about-item{
+      padding:16px;
+      border-radius:16px;
+      background:rgba(255,255,255,.03);
+      border:1px solid rgba(255,255,255,.08);
+    }
+    .about-item strong{
+      display:block; font-size:13px; color:var(--accent); margin-bottom:6px;
+    }
+    .about-item span{display:block; line-height:1.7; color:#dce7fb; font-size:14px}
+
+    .timeline-card{padding:28px}
+    .timeline{display:grid; gap:14px; margin-top:6px}
+    .timeline-item{
+      display:grid;
+      grid-template-columns: 60px 1fr;
+      gap:14px;
+      align-items:start;
+      padding:14px 0;
+      border-top:1px dashed rgba(255,255,255,.10);
+    }
+    .timeline-item:first-child{border-top:none; padding-top:0}
+    .timeline-index{
+      width:44px; height:44px; border-radius:14px;
+      display:grid; place-items:center;
+      background:linear-gradient(135deg, rgba(125,211,252,.18), rgba(167,139,250,.18));
+      font-weight:800;
+      color:var(--text);
+    }
+    .timeline-content h3{
+      margin:0 0 8px;
+      font-size:18px;
+    }
+    .timeline-content p{
+      margin:0;
+      color:var(--muted);
+      line-height:1.75;
+      font-size:14px;
+    }
+
+    .card-grid{
+      display:grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap:20px;
+    }
+    .project-card{
+      overflow:hidden;
+      display:flex;
+      flex-direction:column;
+    }
+    .project-media{
+      aspect-ratio: 16/9;
+      overflow:hidden;
+      border-bottom:1px solid rgba(255,255,255,.06);
+      background:#0d1526;
+    }
+    .project-media img{
+      width:100%; height:100%; object-fit:cover; display:block;
+      transition:transform .4s ease;
+    }
+    .project-card:hover .project-media img{transform:scale(1.03)}
+    .project-body{padding:22px}
+    .project-body h3{margin:0 0 10px; font-size:20px}
+    .project-body p{
+      margin:0 0 14px;
+      color:var(--muted);
+      line-height:1.8;
+      font-size:14px;
+    }
+    .tags{display:flex; flex-wrap:wrap; gap:8px}
+    .tag{
+      padding:7px 10px;
+      font-size:12px;
+      border-radius:999px;
+      background:rgba(255,255,255,.04);
+      color:#dce7fb;
+      border:1px solid rgba(255,255,255,.07);
+    }
+
+    .dashboard{
+      padding:26px;
+    }
+    .tab-row{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-bottom:18px;
+    }
+    .tab{
+      padding:10px 14px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.08);
+      background:rgba(255,255,255,.04);
+      color:var(--muted);
+      font-size:13px;
+      cursor:pointer;
+      transition:.2s ease;
+    }
+    .tab.active{
+      color:#04111e;
+      background:linear-gradient(135deg, var(--accent), #60a5fa);
+      border-color:transparent;
+      font-weight:800;
+    }
+    .dashboard-grid{
+      display:grid;
+      grid-template-columns: 1.35fr .95fr;
+      gap:20px;
+      align-items:stretch;
+    }
+    .chart-panel{
+      padding:18px 18px 8px;
+      border-radius:18px;
+      background:rgba(255,255,255,.03);
+      border:1px solid rgba(255,255,255,.07);
+      min-height: 380px;
+    }
+    .chart-head{
+      display:flex; justify-content:space-between; gap:14px; align-items:flex-start;
+      margin:0 0 14px;
+    }
+    .chart-head h3{margin:0; font-size:18px}
+    .chart-head p{margin:6px 0 0; font-size:13px; color:var(--muted); line-height:1.6}
+    canvas{width:100%; height:280px; display:block}
+    .legend{
+      display:flex; flex-wrap:wrap; gap:10px; margin-top:10px;
+    }
+    .legend-item{
+      display:inline-flex; align-items:center; gap:8px; font-size:12px; color:var(--muted);
+    }
+    .legend-swatch{
+      width:10px; height:10px; border-radius:999px;
+    }
+    .insights{
+      display:grid;
+      gap:14px;
+    }
+    .insight{
+      padding:18px;
+      border-radius:18px;
+      background:rgba(255,255,255,.03);
+      border:1px solid rgba(255,255,255,.07);
+    }
+    .insight strong{
+      display:block;
+      margin-bottom:8px;
+      font-size:17px;
+    }
+    .insight p{
+      margin:0;
+      color:var(--muted);
+      line-height:1.75;
+      font-size:14px;
+    }
+
+    .gallery-grid{
+      display:grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap:18px;
+    }
+    .gallery-item{
+      position:relative;
+      overflow:hidden;
+      cursor:pointer;
+      border-radius:20px;
+      border:1px solid rgba(255,255,255,.08);
+      background:rgba(255,255,255,.03);
+      min-height:190px;
+    }
+    .gallery-item img{
+      width:100%; height:100%; object-fit:cover; display:block;
+      transition:transform .35s ease, opacity .35s ease;
+    }
+    .gallery-item:hover img{
+      transform:scale(1.04);
+      opacity:.88;
+    }
+    .gallery-item span{
+      position:absolute; left:14px; bottom:14px;
+      padding:8px 12px; border-radius:999px;
+      background:rgba(7,17,31,.72);
+      border:1px solid rgba(255,255,255,.08);
+      font-size:12px;
+    }
+    .gallery-item em{
+      position:absolute;
+      left:14px;
+      top:14px;
+      padding:6px 10px;
+      border-radius:999px;
+      background:rgba(125,211,252,.14);
+      border:1px solid rgba(125,211,252,.18);
+      color:#d9ecff;
+      font-size:11px;
+      font-style:normal;
+      letter-spacing:.02em;
+    }
+
+    .resume-grid{
+      display:grid;
+      grid-template-columns: 1fr .9fr;
+      gap:20px;
+    }
+    .resume-card{padding:26px}
+    .resume-list{display:grid; gap:14px}
+    .resume-item{
+      padding:16px 0;
+      border-top:1px dashed rgba(255,255,255,.10);
+    }
+    .resume-item:first-child{border-top:none; padding-top:0}
+    .resume-item h3{margin:0 0 8px; font-size:18px}
+    .resume-item .meta{font-size:13px; color:var(--accent); margin-bottom:8px}
+    .resume-item p{margin:0; color:var(--muted); line-height:1.75; font-size:14px}
+
+    .skill-cloud{
+      display:flex; flex-wrap:wrap; gap:10px; margin-top:14px;
+    }
+    .skill{
+      padding:10px 12px;
+      border-radius:999px;
+      font-size:13px;
+      color:#deebff;
+      background:linear-gradient(135deg, rgba(125,211,252,.10), rgba(167,139,250,.10));
+      border:1px solid rgba(125,211,252,.14);
+    }
+    .contact-grid{
+      display:grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap:14px;
+      margin-top:18px;
+    }
+    .contact-card{
+      padding:16px;
+      border-radius:16px;
+      border:1px solid rgba(255,255,255,.08);
+      background:rgba(255,255,255,.03);
+    }
+    .contact-card strong{
+      display:block; color:var(--accent); font-size:13px; margin-bottom:7px;
+    }
+    .contact-card span{
+      display:block; color:#deebff; font-size:14px; line-height:1.7;
+      word-break:break-word;
+    }
+
+    .footer{
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.8;
+      text-align:center;
+      padding:26px 18px 0;
+    }
+
+    .lightbox{
+      position:fixed;
+      inset:0;
+      display:none;
+      place-items:center;
+      padding:24px;
+      background:rgba(2,6,12,.82);
+      backdrop-filter: blur(10px);
+      z-index:30;
+    }
+    .lightbox.open{display:grid}
+    .lightbox-inner{
+      position:relative;
+      width:min(1120px, calc(100vw - 40px));
+      max-height:calc(100vh - 40px);
+      border-radius:24px;
+      overflow:hidden;
+      border:1px solid rgba(255,255,255,.10);
+      background:#0b1220;
+      box-shadow:var(--shadow);
+    }
+    .lightbox-inner img{
+      width:100%;
+      height:auto;
+      display:block;
+      max-height:calc(100vh - 40px);
+      object-fit:contain;
+    }
+    .lightbox-close{
+      position:absolute;
+      top:14px; right:14px;
+      width:42px;height:42px;border-radius:999px;border:none;
+      background:rgba(7,17,31,.68);
+      color:var(--text); font-size:20px; cursor:pointer;
+      border:1px solid rgba(255,255,255,.08);
+    }
+
+    @media (max-width: 1060px){
+      .hero,.overview,.resume-grid,.dashboard-grid{grid-template-columns:1fr}
+      .card-grid,.gallery-grid{grid-template-columns:repeat(2,1fr)}
+      .hero-sub{max-width:none}
+    }
+    @media (max-width: 760px){
+      .topbar-inner{padding:12px 14px}
+      main{padding:20px 14px 72px}
+      .hero-main,.about-card,.timeline-card,.dashboard,.resume-card{padding:22px}
+      .stats{grid-template-columns:1fr}
+      .about-grid,.contact-grid{grid-template-columns:1fr}
+      .card-grid,.gallery-grid{grid-template-columns:1fr}
+      .nav{display:none}
+      .section-title{display:block}
+      .section-title p{margin-top:8px}
+      .project-media{aspect-ratio:16/10}
+    }
+  </style>
+</head>
+<body>
+  <div class="blob one"></div>
+  <div class="blob two"></div>
+  <div class="blob three"></div>
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <div class="brand-badge">WS</div>
+        <div class="brand-text">
+          <strong>王硕 · Shuo Wang</strong>
+          <span>Prior-guided Autonomous Perception for Unmanned Platforms</span>
+        </div>
+      </div>
+      <nav class="nav">
+        <a href="#about">概览</a>
+        <a href="#projects">研究贡献</a>
+        <a href="#results">实验结果</a>
+        <a href="#exp-index">实验索引</a>
+        <a href="#gallery">图示画廊</a>
+        <a href="#resume">履历信息</a>
+        <a href="#contact">联系</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="panel hero-main">
+        <span class="eyebrow">Research Resume • UGV Autonomous Perception</span>
+        <h1>王硕</h1>
+        <p class="hero-sub">面向无人平台自主感知的研究型工程师</p>
+        <p class="hero-desc">
+          聚焦<strong>先验信息引导下的无人平台自主感知</strong>，围绕
+          <strong>地图级先验构建与索引</strong>、<strong>地形结构化建模</strong>、
+          <strong>动态感知</strong>、<strong>变化检测</strong>与<strong>地图增量更新</strong>
+          建立了完整技术链路。研究对象面向复杂自然环境、动态场景与长期运行任务，强调统一表达、稳定建模与工程可落地实现。
+        </p>
+        <div class="chip-row">
+          <span class="chip">国防科技大学 · 电子信息（人工智能）</span>
+          <span class="chip">无人平台自主感知</span>
+          <span class="chip">LiDAR · IMU · GNSS · UAV Mapping</span>
+          <span class="chip">BEV · BGKI · SLAM · Change Detection</span>
+        </div>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="#results">查看实验面板</a>
+          <a class="btn btn-secondary" href="#exp-index">浏览实验索引</a>
+        </div>
+      </div>
+
+      <div class="hero-side">
+        <div class="panel stats">
+          <div class="stat">
+            <div class="value counter" data-target="99.64">0</div>
+            <div class="label">先验引导地形建模最高覆盖率（O-05, P-Ours）</div>
+          </div>
+          <div class="stat">
+            <div class="value counter" data-target="99.42">0</div>
+            <div class="label">动态分离最高 AA（O-10, PGP-DOR+）</div>
+          </div>
+          <div class="stat">
+            <div class="value counter" data-target="0.625">0</div>
+            <div class="label">增量更新相对原始点云的传输比例（%）</div>
+          </div>
+          <div class="stat">
+            <div class="value counter" data-target="99.84">0</div>
+            <div class="label">危险地形属性分析最高 ACC（O-08）</div>
+          </div>
+        </div>
+        <div class="panel mini-card">
+          <h3>论文题目</h3>
+          <p>《先验信息引导下的地面无人平台环境感知技术研究》</p>
+        </div>
+        <div class="panel mini-card">
+          <h3>联系方式</h3>
+          <ul class="mini-list">
+            <li>邮箱：<a href="mailto:1972178768@qq.com">1972178768@qq.com</a></li>
+            <li>电话：<a href="tel:19871938445">19871938445</a></li>
+            <li>GitHub：<a href="https://github.com/MichealRW/PGP-DOR" target="_blank" rel="noreferrer">MichealRW/PGP-DOR</a></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section id="about">
+      <div class="section-title">
+        <h2>研究概览</h2>
+        <p>以“地图级先验构建与索引 - 地形结构化建模 - 动态感知与变化检测 - 地图增量维护”为主线，形成面向长期运行任务的环境感知闭环。</p>
+      </div>
+      <div class="overview">
+        <div class="panel about-card">
+          <h3>研究定位</h3>
+          <p class="hero-desc">
+            面向复杂自然环境中的无人平台自主运行需求，重点研究如何利用历史环境信息与实时观测协同完成稳定感知。
+            论文工作系统覆盖地图构建、环境表征、地形建模、动态目标分离、结构变化检测以及低带宽增量更新等核心问题。
+          </p>
+          <div class="about-grid">
+            <div class="about-item">
+              <strong>研究对象</strong>
+              <span>地面无人平台、复杂自然环境、动态场景、长期运行任务</span>
+            </div>
+            <div class="about-item">
+              <strong>论文主线</strong>
+              <span>先验构建与索引 → 地形建模 → 动态感知 → 环境演进维护</span>
+            </div>
+            <div class="about-item">
+              <strong>学位信息</strong>
+              <span>硕士研究生 · 国防科技大学 · 电子信息（人工智能方向）</span>
+            </div>
+            <div class="about-item">
+              <strong>导师</strong>
+              <span>付浩 副研究员</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel timeline-card">
+          <h3>技术链路</h3>
+          <div class="timeline">
+            <div class="timeline-item">
+              <div class="timeline-index">01</div>
+              <div class="timeline-content">
+                <h3>地图级先验表征与构建</h3>
+                <p>构建统一 BEV 先验表达，提出 DLM-LIO，完成先验约束下的融合定位、先验索引与全局一致性优化。</p>
+              </div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-index">02</div>
+              <div class="timeline-content">
+                <h3>先验引导地形结构化建模</h3>
+                <p>以局部滚动 BEV 地图统一组织观测，结合单帧有效区域评估、多帧融合与先验增强，恢复连续稳定地形。</p>
+              </div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-index">03</div>
+              <div class="timeline-content">
+                <h3>动态感知与变化检测</h3>
+                <p>通过“点-栅格-点”动态分离获得可靠静态结构，再基于局部子图与高程 / 占据对比完成变化检测。</p>
+              </div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-index">04</div>
+              <div class="timeline-content">
+                <h3>地图增量更新与低带宽维护</h3>
+                <p>将变化结果组织为可维护增量信息，在降低误检率的同时显著压缩更新数据量，服务长期运行任务。</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="projects">
+      <div class="section-title">
+        <h2>代表性研究贡献</h2>
+        <p>围绕论文第二、三、四章的核心问题，展示地图级先验构建、先验引导地形建模以及动态感知与地图维护三个研究模块。</p>
+      </div>
+      <div class="card-grid">
+        <article class="panel project-card">
+          <div class="project-media">
+            <img src="./assets/f2-1-framework.png" alt="先验信息表征与构建框架" />
+          </div>
+          <div class="project-body">
+            <h3>DLM-LIO 与地图级先验构建</h3>
+            <p>
+              针对原始点云地图表达松散、难以直接服务在线感知的问题，构建地图级先验表达体系，
+              通过双层空间索引、先验约束融合定位和位姿驱动索引，实现全局先验到逐帧感知的高效映射。
+            </p>
+            <div class="tags">
+              <span class="tag">LiDAR-IMU-GNSS</span>
+              <span class="tag">Dual-layer ikd-tree</span>
+              <span class="tag">Factor Graph</span>
+              <span class="tag">Map-level BEV Prior</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="panel project-card">
+          <div class="project-media">
+            <img src="./assets/f3-1-terrain-framework.png" alt="先验引导地形建模框架" />
+          </div>
+          <div class="project-body">
+            <h3>先验引导地形结构化建模</h3>
+            <p>
+              针对复杂自然环境下观测稀疏、遮挡严重、局部退化的问题，在无先验版本中完成稳定地形恢复，
+              在有先验版本中进一步利用历史地形结果对退化区域进行筛选、补全与约束。
+            </p>
+            <div class="tags">
+              <span class="tag">Rolling BEV Grid</span>
+              <span class="tag">BGKI</span>
+              <span class="tag">Prior-guided Terrain</span>
+              <span class="tag">Traversability</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="panel project-card">
+          <div class="project-media">
+            <img src="./assets/f4-1-evolution-framework.png" alt="动态感知与更新框架" />
+          </div>
+          <div class="project-body">
+            <h3>动态感知、变化检测与地图更新</h3>
+            <p>
+              面向长期运行任务，将地形结构、动态目标分离、局部子图变化检测与增量写回维护组织为完整闭环，
+              兼顾在线动态感知能力与低带宽环境下的地图持续更新能力。
+            </p>
+            <div class="tags">
+              <span class="tag">Point-Grid-Point</span>
+              <span class="tag">Dynamic Removal</span>
+              <span class="tag">Change Detection</span>
+              <span class="tag">Incremental Update</span>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section id="results">
+      <div class="section-title">
+        <h2>实验结果面板</h2>
+        <p>围绕先验构建、地形建模、动态分离与增量更新四个方向，对论文中的代表性数值结果进行集中展示。</p>
+      </div>
+
+      <div class="panel dashboard">
+        <div class="tab-row" id="dashboardTabs"></div>
+        <div class="dashboard-grid">
+          <div class="chart-panel">
+            <div class="chart-head">
+              <div>
+                <h3 id="chartTitle">实验图表</h3>
+                <p id="chartDesc">切换不同章节的代表性实验结果。</p>
+              </div>
+            </div>
+            <canvas id="mainChart" width="900" height="360"></canvas>
+            <div class="legend" id="chartLegend"></div>
+          </div>
+
+          <div class="insights" id="insightPanel"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="exp-index">
+      <div class="section-title">
+        <h2>实验效果索引</h2>
+        <p>选取建图、地形建模、先验增强、动态分离与变化检测的代表性结果图，便于快速检索各章节实验效果。</p>
+      </div>
+      <div class="gallery-grid">
+        <div class="gallery-item" data-image="./assets/f2-18-slam-gps.png" data-title="第二章 · GPS 置信度与全局一致性误差分析">
+          <img src="./assets/f2-18-slam-gps.png" alt="GPS 置信度与全局一致性误差分析" />
+          <em>第二章</em><span>GPS 置信度与全局一致性误差分析</span>
+        </div>
+        <div class="gallery-item" data-image="./assets/f2-19-map-compare.png" data-title="第二章 · 多场景建图效果对比">
+          <img src="./assets/f2-19-map-compare.png" alt="多场景建图效果对比" />
+          <em>第二章</em><span>多场景建图效果对比</span>
+        </div>
+        <div class="gallery-item" data-image="./assets/f3-12-all-dataset-terraineva2.png" data-title="第三章 · 无先验地形综合评估">
+          <img src="./assets/f3-12-all-dataset-terraineva2.png" alt="无先验地形综合评估" />
+          <em>第三章</em><span>无先验地形综合评估</span>
+        </div>
+        <div class="gallery-item" data-image="./assets/f3-13-all-dataset-terraineva-ele.png" data-title="第三章 · 无先验地形可视化对比">
+          <img src="./assets/f3-13-all-dataset-terraineva-ele.png" alt="无先验地形可视化对比" />
+          <em>第三章</em><span>无先验地形可视化对比</span>
+        </div>
+        <div class="gallery-item" data-image="./assets/f3-14-all-dataset-prior-eva.png" data-title="第三章 · 有先验地形与代价分析对比">
+          <img src="./assets/f3-14-all-dataset-prior-eva.png" alt="有先验地形与代价分析对比" />
+          <em>第三章</em><span>有先验地形与代价分析对比</span>
+        </div>
+        <div class="gallery-item" data-image="./assets/f3-15-all-dataset-prior-xiaorong.png" data-title="第三章 · 先验增强地形消融">
+          <img src="./assets/f3-15-all-dataset-prior-xiaorong.png" alt="先验增强地形消融" />
+          <em>第三章</em><span>先验增强地形消融</span>
+        </div>
+        <div class="gallery-item" data-image="./assets/f3-16-all-dataset-prior-terrainchange.png" data-title="第三章 · 地形变化响应结果">
+          <img src="./assets/f3-16-all-dataset-prior-terrainchange.png" alt="地形变化响应结果" />
+          <em>第三章</em><span>地形变化响应结果</span>
+        </div>
+        <div class="gallery-item" data-image="./assets/f4-10-eval-all-dataset.png" data-title="第四章 · 动态分离多方法对比">
+          <img src="./assets/f4-10-eval-all-dataset.png" alt="动态分离多方法对比" />
+          <em>第四章</em><span>动态分离多方法对比</span>
+        </div>
+        <div class="gallery-item" data-image="./assets/f4-13-all-study.png" data-title="第四章 · 动态分离消融实验">
+          <img src="./assets/f4-13-all-study.png" alt="动态分离消融实验" />
+          <em>第四章</em><span>动态分离消融实验</span>
+        </div>
+        <div class="gallery-item" data-image="./assets/f4-15-changedetection-frame.png" data-title="第四章 · 帧级变化检测结果">
+          <img src="./assets/f4-15-changedetection-frame.png" alt="帧级变化检测结果" />
+          <em>第四章</em><span>帧级变化检测结果</span>
+        </div>
+        <div class="gallery-item" data-image="./assets/f4-16-changedetection-map.png" data-title="第四章 · 地图级变化检测结果">
+          <img src="./assets/f4-16-changedetection-map.png" alt="地图级变化检测结果" />
+          <em>第四章</em><span>地图级变化检测结果</span>
+        </div>
+      </div>
+    </section>
+
+    <section id="gallery">
+      <div class="section-title">
+        <h2>框架图示画廊</h2>
+        <p>选取论文中用于表达整体技术路线与核心模块关系的框架图，展示从地图级先验到环境演进维护的完整研究结构。</p>
+      </div>
+
+      <div class="gallery-grid">
+        <div class="gallery-item" data-image="./assets/f1-7-kuangjia.png" data-title="全文组织架构">
+          <img src="./assets/f1-7-kuangjia.png" alt="全文组织架构" />
+          <span>全文组织架构</span>
+        </div>
+        <div class="gallery-item" data-image="./assets/f2-1-framework.png" data-title="先验信息构建框架">
+          <img src="./assets/f2-1-framework.png" alt="先验信息构建框架" />
+          <span>先验信息构建框架</span>
+        </div>
+        <div class="gallery-item" data-image="./assets/f2-12-structure-pipeline.png" data-title="结构化先验生成">
+          <img src="./assets/f2-12-structure-pipeline.png" alt="结构化先验生成" />
+          <span>结构化先验生成</span>
+        </div>
+        <div class="gallery-item" data-image="./assets/f3-1-terrain-framework.png" data-title="地形建模总流程">
+          <img src="./assets/f3-1-terrain-framework.png" alt="地形建模总流程" />
+          <span>地形建模总流程</span>
+        </div>
+        <div class="gallery-item" data-image="./assets/f3-5-priorguided-pipline.png" data-title="先验引导地形建模">
+          <img src="./assets/f3-5-priorguided-pipline.png" alt="先验引导地形建模" />
+          <span>先验引导地形建模</span>
+        </div>
+        <div class="gallery-item" data-image="./assets/f3-8-traversability-pipeline.png" data-title="可通行性分析">
+          <img src="./assets/f3-8-traversability-pipeline.png" alt="可通行性分析" />
+          <span>可通行性分析</span>
+        </div>
+        <div class="gallery-item" data-image="./assets/f4-2-dynamic-framework.png" data-title="动态目标分离">
+          <img src="./assets/f4-2-dynamic-framework.png" alt="动态目标分离" />
+          <span>动态目标分离</span>
+        </div>
+        <div class="gallery-item" data-image="./assets/f4-4-changedetection-framework.png" data-title="变化检测与更新">
+          <img src="./assets/f4-4-changedetection-framework.png" alt="变化检测与更新" />
+          <span>变化检测与更新</span>
+        </div>
+        <div class="gallery-item" data-image="./assets/f4-1-evolution-framework.png" data-title="环境演进感知">
+          <img src="./assets/f4-1-evolution-framework.png" alt="环境演进感知" />
+          <span>环境演进感知</span>
+        </div>
+      </div>
+    </section>
+
+    <section id="resume">
+      <div class="section-title">
+        <h2>履历信息</h2>
+        <p>围绕教育背景、研究主题与技术能力，对论文工作中体现出的研究与工程能力进行整理。</p>
+      </div>
+
+      <div class="resume-grid">
+        <div class="panel resume-card">
+          <h3>教育与研究方向</h3>
+          <div class="resume-list">
+            <div class="resume-item">
+              <div class="meta">硕士研究生 · 国防科技大学 · 电子信息（人工智能方向）</div>
+              <h3>先验信息引导下的地面无人平台环境感知</h3>
+              <p>
+                研究面向复杂自然环境、动态环境与长期运行任务，聚焦地图级先验构建、结构化地形建模、动态感知、
+                变化检测与增量地图更新，强调面向系统链路的统一表示与工程可落地性。
+              </p>
+            </div>
+            <div class="resume-item">
+              <div class="meta">论文题目</div>
+              <h3>《先验信息引导下的地面无人平台环境感知技术研究》</h3>
+              <p>
+                以地图级 BEV 先验为统一表达基础，建立从定位与地图构建、地形恢复、动态分离到变化检测和地图维护的完整方法链路。
+              </p>
+            </div>
+            <div class="resume-item">
+              <div class="meta">研究关键词</div>
+              <h3>先验构建 · 地形建模 · 动态感知 · 环境演进维护</h3>
+              <p>
+                研究内容覆盖地图级先验表达、双层地图感知激光惯性里程计 DLM-LIO、先验引导地形结构化建模、
+                “点-栅格-点”动态分离、局部子图变化检测以及低带宽增量更新。
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel resume-card">
+          <h3>技术关键词</h3>
+          <p class="hero-desc">
+            结合论文主线与工程实现，当前页面突出以下与岗位高度相关的技术主题。
+          </p>
+          <div class="skill-cloud">
+            <span class="skill">SLAM / LIO</span>
+            <span class="skill">LiDAR Point Cloud</span>
+            <span class="skill">BEV Representation</span>
+            <span class="skill">BGKI</span>
+            <span class="skill">Factor Graph Optimization</span>
+            <span class="skill">ikd-tree</span>
+            <span class="skill">Traversability Analysis</span>
+            <span class="skill">Dynamic Object Removal</span>
+            <span class="skill">Change Detection</span>
+            <span class="skill">Incremental Map Update</span>
+            <span class="skill">UGV-UAV Mapping</span>
+            <span class="skill">GNSS / IMU / Camera Fusion</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="contact">
+      <div class="section-title">
+        <h2>联系信息</h2>
+        <p>当前版本已补充邮箱、电话与 GitHub 仓库地址，可直接用于静态部署与公开展示。</p>
+      </div>
+      <div class="panel resume-card">
+        <div class="contact-grid">
+          <div class="contact-card">
+            <strong>姓名 / Name</strong>
+            <span>王硕 · Shuo Wang</span>
+          </div>
+          <div class="contact-card">
+            <strong>机构 / Affiliation</strong>
+            <span>国防科技大学</span>
+          </div>
+          <div class="contact-card">
+            <strong>研究方向 / Focus</strong>
+            <span>无人平台自主感知、地形建模、动态感知、变化检测</span>
+          </div>
+          <div class="contact-card">
+            <strong>邮箱 / Email</strong>
+            <span><a href="mailto:1972178768@qq.com">1972178768@qq.com</a></span>
+          </div>
+          <div class="contact-card">
+            <strong>联系方式 / Phone</strong>
+            <span><a href="tel:19871938445">19871938445</a></span>
+          </div>
+          <div class="contact-card">
+            <strong>GitHub</strong>
+            <span><a href="https://github.com/MichealRW/PGP-DOR" target="_blank" rel="noreferrer">https://github.com/MichealRW/PGP-DOR</a></span>
+          </div>
+        </div>
+      </div>
+      <div class="footer">
+        Wang Shuo · Prior-guided Environmental Perception for Unmanned Ground Platforms<br/>
+        Static Web Resume / Academic Portfolio
+      </div>
+    </section>
+  </main>
+
+  <div class="lightbox" id="lightbox" aria-hidden="true">
+    <div class="lightbox-inner">
+      <button class="lightbox-close" id="lightboxClose" aria-label="关闭">×</button>
+      <img id="lightboxImage" src="" alt="查看大图" />
+    </div>
+  </div>
+
+  <script>
+    const dashboardConfigs = [
+      {
+        key: 'chapter2',
+        label: '第二章 · 先验构建',
+        title: 'DLM-LIO 消融：相对地图熵值越低越好',
+        desc: '展示双层地图结构、主从切换与平滑融合对建图质量的提升效果。',
+        type: 'line',
+        labels: ['Baseline', 'M1', 'M1+M2', 'M1+M3', 'Full'],
+        series: [
+          { name: 'Relative Entropy', color: '#7dd3fc', values: [1.18262, 1.12949, 1.07741, 1.07213, 1.0] }
+        ],
+        insights: [
+          ['整体结果', '完整方法将相对地图熵值从 1.18262 降至 1.0，说明双层地图结构与融合策略共同提升了地图紧凑性与一致性。'],
+          ['模块作用', '双层地图结构提供基础支撑，主从切换增强全局一致性，平滑融合改善局部连续性。'],
+          ['研究意义', '该结果表明先验信息调用并非附加模块，而是与定位和地图管理深度耦合的系统设计。']
+        ]
+      },
+      {
+        key: 'terrain',
+        label: '第三章 · 地形建模',
+        title: '无先验地形建模：Score 越高越好',
+        desc: '展示 Ours 与 GPR / NDT-TM / BGKI 在六个无先验场景中的综合表现。',
+        type: 'groupedBar',
+        labels: ['O-00', 'O-02', 'K-00', 'K-01', 'W-00', 'W-01'],
+        series: [
+          { name: 'Ours', color: '#7dd3fc', values: [28.72, 13.74, 17.55, 17.84, 46.98, 52.73] },
+          { name: 'GPR', color: '#a78bfa', values: [0.81, 0.60, 1.71, 1.49, 1.31, 1.42] },
+          { name: 'NDT-TM', color: '#34d399', values: [2.46, 2.33, 1.99, 2.12, 3.01, 3.43] },
+          { name: 'BGKI', color: '#fbbf24', values: [1.96, 2.70, 1.49, 1.47, 2.23, 2.69] }
+        ],
+        insights: [
+          ['整体结果', '无先验版本在全部六组数据集上的综合分数均为最优，说明方法在缺乏先验时仍能稳定完成地形恢复。'],
+          ['效率表现', '单帧平均耗时维持在约 44.33 - 81.18 ms，兼顾了建模性能与实时运行需求。'],
+          ['研究意义', '该结果为后续先验增强版本提供了稳定基线，体现了“无先验稳定建模 - 有先验增强建模”的清晰技术路线。']
+        ]
+      },
+      {
+        key: 'dynamic',
+        label: '第四章 · 动态分离',
+        title: '地图级动态分离：AA 越高越好',
+        desc: '对比 DUFOMap、Deflow、PGP-DOR 与 PGP-DOR+ 在六组数据集上的综合准确率。',
+        type: 'groupedBar',
+        labels: ['K-00', 'K-01', 'W-00', 'W-01', 'O-09', 'O-10'],
+        series: [
+          { name: 'DUFOMap', color: '#a78bfa', values: [95.31, 89.50, 98.74, 98.65, 98.50, 97.88] },
+          { name: 'Deflow', color: '#34d399', values: [96.25, 90.64, 97.13, 94.85, 97.98, 78.52] },
+          { name: 'PGP-DOR', color: '#fbbf24', values: [98.00, 92.93, 98.04, 98.85, 98.07, 99.31] },
+          { name: 'PGP-DOR+', color: '#7dd3fc', values: [98.10, 95.28, 98.96, 98.93, 99.00, 99.42] }
+        ],
+        insights: [
+          ['整体结果', '引入地形与结构先验后，PGP-DOR+ 在六组数据集上全部取得最优 AA。'],
+          ['方法特点', '通过“点-栅格-点”策略将点级时序属性与栅格级空间推理结合，提升了静态结构恢复的稳定性。'],
+          ['研究意义', '动态目标分离不再作为独立前处理，而是直接服务于后续变化检测与地图维护。']
+        ]
+      },
+      {
+        key: 'update',
+        label: '变化检测 · 更新开销',
+        title: '增量更新开销：数据量显著压缩',
+        desc: '对比原始点云、Base、Base+M1 与最终方法的压缩编码数据量。',
+        type: 'bar',
+        labels: ['原始点云', 'Base', 'Base+M1', 'Base+M1+M2'],
+        series: [
+          { name: 'Compressed Bytes', color: '#7dd3fc', values: [2291380, 1491020, 23204, 14320] }
+        ],
+        insights: [
+          ['整体结果', '最终方法的更新数据量仅为原始点云的 0.6250%，显著降低了持续维护过程中的传输与更新负担。'],
+          ['系统价值', '在低带宽与长期运行场景下，增量更新策略比全量回传更符合工程系统对时效性和成本的要求。'],
+          ['研究意义', '该结果体现出论文不仅关注感知精度，也关注地图维护成本与长期运行可用性。']
+        ]
+      }
+    ];
+
+    const tabsEl = document.getElementById('dashboardTabs');
+    const titleEl = document.getElementById('chartTitle');
+    const descEl = document.getElementById('chartDesc');
+    const legendEl = document.getElementById('chartLegend');
+    const insightPanel = document.getElementById('insightPanel');
+    const canvas = document.getElementById('mainChart');
+    const ctx = canvas.getContext('2d');
+
+    let activeConfig = dashboardConfigs[0];
+
+    function createTabs(){
+      dashboardConfigs.forEach((cfg, index) => {
+        const button = document.createElement('button');
+        button.className = 'tab' + (index === 0 ? ' active' : '');
+        button.textContent = cfg.label;
+        button.addEventListener('click', () => {
+          document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+          button.classList.add('active');
+          activeConfig = cfg;
+          renderDashboard();
+        });
+        tabsEl.appendChild(button);
+      });
+    }
+
+    function renderDashboard(){
+      titleEl.textContent = activeConfig.title;
+      descEl.textContent = activeConfig.desc;
+      renderLegend(activeConfig.series);
+      renderInsights(activeConfig.insights);
+      drawChart(activeConfig);
+    }
+
+    function renderLegend(series){
+      legendEl.innerHTML = '';
+      series.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'legend-item';
+        div.innerHTML = '<span class="legend-swatch" style="background:' + item.color + '"></span>' + item.name;
+        legendEl.appendChild(div);
+      });
+    }
+
+    function renderInsights(items){
+      insightPanel.innerHTML = '';
+      items.forEach(([title, text]) => {
+        const div = document.createElement('div');
+        div.className = 'insight';
+        div.innerHTML = '<strong>' + title + '</strong><p>' + text + '</p>';
+        insightPanel.appendChild(div);
+      });
+    }
+
+    function roundRect(ctx, x, y, w, h, r){
+      const radius = Math.min(r, w / 2, h / 2);
+      ctx.beginPath();
+      ctx.moveTo(x + radius, y);
+      ctx.arcTo(x + w, y, x + w, y + h, radius);
+      ctx.arcTo(x + w, y + h, x, y + h, radius);
+      ctx.arcTo(x, y + h, x, y, radius);
+      ctx.arcTo(x, y, x + w, y, radius);
+      ctx.closePath();
+    }
+
+    function drawChart(cfg){
+      const width = canvas.width;
+      const height = canvas.height;
+      ctx.clearRect(0,0,width,height);
+
+      const pad = { top: 26, right: 24, bottom: 58, left: 58 };
+      const chartW = width - pad.left - pad.right;
+      const chartH = height - pad.top - pad.bottom;
+      const maxVal = Math.max(...cfg.series.flatMap(s => s.values)) * 1.15;
+      const minVal = 0;
+
+      ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+      ctx.lineWidth = 1;
+      ctx.font = '12px sans-serif';
+      ctx.fillStyle = 'rgba(158,176,208,0.9)';
+      const steps = 5;
+      for(let i=0;i<=steps;i++){
+        const value = minVal + (maxVal - minVal) * i / steps;
+        const y = pad.top + chartH - chartH * i / steps;
+        ctx.beginPath();
+        ctx.moveTo(pad.left, y);
+        ctx.lineTo(width - pad.right, y);
+        ctx.stroke();
+        ctx.fillText(value >= 1000 ? Math.round(value).toLocaleString() : value.toFixed(value < 10 ? 2 : 0), 8, y + 4);
+      }
+
+      ctx.strokeStyle = 'rgba(255,255,255,.18)';
+      ctx.beginPath();
+      ctx.moveTo(pad.left, pad.top);
+      ctx.lineTo(pad.left, pad.top + chartH);
+      ctx.lineTo(pad.left + chartW, pad.top + chartH);
+      ctx.stroke();
+
+      if(cfg.type === 'line'){
+        drawLine(cfg, pad, chartW, chartH, maxVal);
+      }else if(cfg.type === 'bar'){
+        drawSingleBar(cfg, pad, chartW, chartH, maxVal);
+      }else{
+        drawGroupedBar(cfg, pad, chartW, chartH, maxVal);
+      }
+    }
+
+    function drawLabels(cfg, pad, chartW, chartH){
+      const labels = cfg.labels;
+      const step = chartW / labels.length;
+      ctx.fillStyle = 'rgba(214,230,255,0.92)';
+      ctx.font = '12px sans-serif';
+      labels.forEach((label, i) => {
+        const x = pad.left + step * i + step / 2;
+        const y = pad.top + chartH + 22;
+        ctx.save();
+        ctx.translate(x, y);
+        if(label.length > 8){
+          ctx.rotate(-0.24);
+          ctx.fillText(label, -22, 0);
+        }else{
+          ctx.fillText(label, -16, 0);
+        }
+        ctx.restore();
+      });
+    }
+
+    function drawSingleBar(cfg, pad, chartW, chartH, maxVal){
+      const labels = cfg.labels;
+      const values = cfg.series[0].values;
+      const color = cfg.series[0].color;
+      const slot = chartW / labels.length;
+      const barW = Math.min(64, slot * 0.5);
+      values.forEach((value, i) => {
+        const x = pad.left + slot * i + slot / 2 - barW / 2;
+        const h = chartH * value / maxVal;
+        const y = pad.top + chartH - h;
+        const gradient = ctx.createLinearGradient(0, y, 0, y + h);
+        gradient.addColorStop(0, color);
+        gradient.addColorStop(1, 'rgba(125,211,252,.18)');
+        ctx.fillStyle = gradient;
+        roundRect(ctx, x, y, barW, h, 12);
+        ctx.fill();
+        ctx.fillStyle = '#eaf2ff';
+        ctx.fillText(value.toLocaleString(), x + 4, y - 8);
+      });
+      drawLabels(cfg, pad, chartW, chartH);
+    }
+
+    function drawGroupedBar(cfg, pad, chartW, chartH, maxVal){
+      const labels = cfg.labels;
+      const series = cfg.series;
+      const slot = chartW / labels.length;
+      const innerGap = 8;
+      const barW = Math.min(28, (slot - 24 - innerGap * (series.length - 1)) / series.length);
+      labels.forEach((label, groupIndex) => {
+        const startX = pad.left + slot * groupIndex + (slot - ((barW * series.length) + innerGap * (series.length - 1))) / 2;
+        series.forEach((entry, idx) => {
+          const value = entry.values[groupIndex];
+          const h = chartH * value / maxVal;
+          const x = startX + idx * (barW + innerGap);
+          const y = pad.top + chartH - h;
+          const gradient = ctx.createLinearGradient(0, y, 0, y + h);
+          gradient.addColorStop(0, entry.color);
+          gradient.addColorStop(1, 'rgba(255,255,255,0.08)');
+          ctx.fillStyle = gradient;
+          roundRect(ctx, x, y, barW, h, 8);
+          ctx.fill();
+          if(idx === 0 || series.length <= 2){
+            ctx.fillStyle = 'rgba(234,242,255,0.88)';
+            ctx.fillText(value.toFixed(value < 10 ? 2 : 0), x - 2, y - 8);
+          }
+        });
+      });
+      drawLabels(cfg, pad, chartW, chartH);
+    }
+
+    function drawLine(cfg, pad, chartW, chartH, maxVal){
+      const values = cfg.series[0].values;
+      const labels = cfg.labels;
+      const step = chartW / (labels.length - 1);
+      ctx.strokeStyle = cfg.series[0].color;
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      values.forEach((value, i) => {
+        const x = pad.left + step * i;
+        const y = pad.top + chartH - chartH * value / maxVal;
+        if(i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+
+      values.forEach((value, i) => {
+        const x = pad.left + step * i;
+        const y = pad.top + chartH - chartH * value / maxVal;
+        ctx.fillStyle = '#07111f';
+        ctx.beginPath();
+        ctx.arc(x, y, 6, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = cfg.series[0].color;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.fillStyle = '#eaf2ff';
+        ctx.fillText(value.toFixed(5), x - 18, y - 12);
+      });
+      ctx.fillStyle = 'rgba(214,230,255,0.92)';
+      ctx.font = '12px sans-serif';
+      labels.forEach((label, i) => {
+        const x = pad.left + step * i;
+        const y = pad.top + chartH + 24;
+        ctx.fillText(label, x - 18, y);
+      });
+    }
+
+    function initCounters(){
+      const counters = document.querySelectorAll('.counter');
+      const io = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+          if(!entry.isIntersecting) return;
+          const el = entry.target;
+          const target = parseFloat(el.dataset.target);
+          const duration = 1200;
+          const start = performance.now();
+          function step(now){
+            const progress = Math.min((now - start) / duration, 1);
+            const current = target * (1 - Math.pow(1 - progress, 3));
+            const digits = target < 1 ? 3 : 2;
+            el.textContent = current.toFixed(digits);
+            if(progress < 1) requestAnimationFrame(step);
+          }
+          requestAnimationFrame(step);
+          io.unobserve(el);
+        });
+      }, { threshold: .35 });
+      counters.forEach(counter => io.observe(counter));
+    }
+
+    function initLightbox(){
+      const lightbox = document.getElementById('lightbox');
+      const image = document.getElementById('lightboxImage');
+      const close = document.getElementById('lightboxClose');
+      document.querySelectorAll('.gallery-item').forEach(item => {
+        item.addEventListener('click', () => {
+          image.src = item.dataset.image;
+          image.alt = item.dataset.title || '查看大图';
+          lightbox.classList.add('open');
+          lightbox.setAttribute('aria-hidden', 'false');
+        });
+      });
+      function hide(){
+        lightbox.classList.remove('open');
+        lightbox.setAttribute('aria-hidden', 'true');
+      }
+      close.addEventListener('click', hide);
+      lightbox.addEventListener('click', (e) => {
+        if(e.target === lightbox) hide();
+      });
+      window.addEventListener('keydown', (e) => {
+        if(e.key === 'Escape') hide();
+      });
+    }
+
+    createTabs();
+    renderDashboard();
+    initCounters();
+    initLightbox();
+    window.addEventListener('resize', () => drawChart(activeConfig));
+  </script>
+</body>
+</html>
