@@ -8,7 +8,7 @@
 
 - 邮箱：1972178768@qq.com
 - 电话：19871938445
-- GitHub：<https://github.com/MichealRW/PGP-DOR>
+- GitHub：<https://github.com/MichealRW>
 - 多组实验效果索引
 - 框架图示画廊
 - 交互式实验结果面板
